@@ -98,31 +98,26 @@ func main() {
 			http.Error(w, "Invalid or missing Authorization header", http.StatusUnauthorized)
 			return
 		}
-
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-
+		server_secret := os.Getenv("SERVER_JWT_SECRET")
 		claims := jwt.MapClaims{}
 		_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(server_secret), nil
 		})
-
 		if err != nil {
 			http.Error(w, "Invalid JWT token", http.StatusUnauthorized)
 			return
 		}
-
 		username := r.URL.Path[len("/user/"):]
 		if username == "" {
 			http.Error(w, "Username is required", http.StatusBadRequest)
 			return
 		}
-
 		userData, err := fetchUserData(token, username)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error fetching user data: %v", err), http.StatusInternalServerError)
 			return
 		}
-
 		numberStr := r.URL.Query().Get("number")
 		number := "?"
 		if numberStr != "" {
@@ -134,9 +129,7 @@ func main() {
 			}
 			number = numberStr
 		}
-
 		processedUser := processUser(userData, number)
-
 		target_alg := os.Getenv("TARGET_API_JWT_ALG")
 		target_issuer := os.Getenv("TARGET_API_JWT_ISSUER")
 		target_secret := os.Getenv("TARGET_API_JWT_SECRET")
@@ -145,17 +138,14 @@ func main() {
 			http.Error(w, "Failed to generate JWT token", http.StatusInternalServerError)
 			return
 		}
-
 		response, err := postToTargetAPI(apiURL, processedUser, jwtToken)
 		if err != nil {
 			http.Error(w, "Failed to get image. "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 		w.Header().Set("Content-Type", "image/png")
 		w.Write(response)
 	})
-
 	fmt.Println("Server is running on port "+port+"...")
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
@@ -165,7 +155,6 @@ func generateJWT(alg string, issuer string, secret string) (string, error) {
 		"iss": issuer,
 		"exp": time.Now().Add(time.Hour).Unix(),
 	})
-
 	return token.SignedString([]byte(secret))
 }
 
@@ -207,7 +196,6 @@ func fetchUserData(token, username string) (*GraphQLResponse, error) {
 				}
 			}
 		}`
-
 	payload := map[string]interface{}{
 		"query": query,
 		"variables": map[string]string{
@@ -215,32 +203,27 @@ func fetchUserData(token, username string) (*GraphQLResponse, error) {
 		},
 	}
 	payloadBytes, _ := json.Marshal(payload)
-
 	req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
-
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
 	var graphqlResp GraphQLResponse
 	if err := json.NewDecoder(resp.Body).Decode(&graphqlResp); err != nil {
 		return nil, err
 	}
-
 	return &graphqlResp, nil
 }
 
 func processUser(data *GraphQLResponse, number string) ProcessedUser {
 	user := data.Data.User
-
 	var repoName1, repoDesc1, repoURL1 string
 	var repoStarCount1 string
 	var repoLanguagesNames1 []string
@@ -249,7 +232,6 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 	var repoStarCount2 string
 	var repoLanguagesNames2 []string
 	var repoLanguagesColors2 []string
-
 	if len(user.Repositories.Nodes) > 0 {
 		repo1 := user.Repositories.Nodes[0]
 		repoName1 = repo1.Name
@@ -263,7 +245,6 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 			}
 		}
 	}
-
 	if len(user.Repositories.Nodes) > 1 {
 		repo2 := user.Repositories.Nodes[1]
 		repoName2 = repo2.Name
@@ -277,11 +258,9 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 			}
 		}
 	}
-
 	counts := make(map[Language]int)
 	mostUsedLanguage := Language{}
 	maxCount := 0
-
 	for _, repo := range user.Repositories.Nodes {
 		for _, edge := range repo.Languages.Edges {
 			currentLang := Language{
@@ -295,11 +274,9 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 			}
 		}
 	}
-
 	var repoCount = strconv.Itoa(user.Repositories.TotalCount)
 	var followingCount = strconv.Itoa(user.Following.TotalCount)
 	var followersCount = strconv.Itoa(user.Following.TotalCount)
-
 	return ProcessedUser{
 		Title:                defaultIfEmpty(user.Name, user.Login),
 		Subtitle:             fmt.Sprintf("https://github.com/%s", user.Login),
@@ -345,38 +322,28 @@ func mapToEmptyIfNil(input []string) []string {
 }
 
 func postToTargetAPI(apiURL string, data interface{}, jwtToken string) ([]byte, error) {
-	// Marshal the data (struct or map) into JSON
 	payloadBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal data: %w", err)
 	}
-
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-
-	// Add headers
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwtToken))
 	req.Header.Set("Content-Type", "application/json")
-
-	// Execute the request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
-
-	// Validate the response
 	if resp.Header.Get("Content-Type") != "image/png" {
 		return nil, fmt.Errorf("unexpected content type: %s", resp.Header.Get("Content-Type"))
 	}
-
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
-
 	return responseBody, nil
 }
