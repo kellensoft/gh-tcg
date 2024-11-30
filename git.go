@@ -167,7 +167,7 @@ func fetchUserData(token, username string) (*GraphQLResponse, error) {
 				following {
 					totalCount
 				}
-				repositories(first: 20) {
+				repositories(first: 20, orderBy: {field: STARGAZERS, direction: DESC}) {
 					totalCount
 					nodes {
 						name
