@@ -82,7 +82,8 @@ func main() {
 	}
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("PORT not found")
+		port = "8080" 
+		fmt.Println("PORT environment variable not set, using default port 8080")
 	}
 	http.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
