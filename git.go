@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
 )
 
 type GraphQLResponse struct {
@@ -75,15 +74,15 @@ type ProcessedUser struct {
 func main() {
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
-		log.Fatal("GITHUB_TOKEN not found in .env")
+		log.Fatal("GITHUB_TOKEN not found")
 	}
 	apiURL := os.Getenv("TARGET_API_URL")
 	if apiURL == "" {
-		log.Fatal("TARGET_API_URL not found in .env")
+		log.Fatal("TARGET_API_URL not found")
 	}
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("PORT not found in .env")
+		log.Fatal("PORT not found")
 	}
 	http.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
