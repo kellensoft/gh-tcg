@@ -73,25 +73,18 @@ type ProcessedUser struct {
 }
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		log.Fatal("GITHUB_TOKEN not found in .env")
 	}
-
 	apiURL := os.Getenv("TARGET_API_URL")
 	if apiURL == "" {
 		log.Fatal("TARGET_API_URL not found in .env")
 	}
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("PORT not found in .env")
 	}
-
 	http.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
