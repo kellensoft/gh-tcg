@@ -12,6 +12,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -72,6 +73,10 @@ type ProcessedUser struct {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Oh well...")
+	}
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		log.Fatal("GITHUB_TOKEN not found")
