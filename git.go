@@ -286,13 +286,13 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 			{
 				mapToEmptyIfNil(repoLanguagesNames1),
 				mapToEmptyIfNil(repoLanguagesColors1),
-				[]interface{}{repoName1, repoDesc1, repoURL1},
+				[]interface{}{repoName1, repoURL1, repoDesc1},
 				repoStarCount1,
 			},
 			{
 				mapToEmptyIfNil(repoLanguagesNames2),
 				mapToEmptyIfNil(repoLanguagesColors2),
-				[]interface{}{repoName2, repoDesc2, repoURL2},
+				[]interface{}{repoName2, repoURL2, repoDesc2},
 				repoStarCount2,
 			},
 		},
