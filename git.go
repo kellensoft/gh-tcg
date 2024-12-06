@@ -1,16 +1,17 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
+	"io"
+	"os"
 	"fmt"
+	"log"
+	"time"
+	"sort"
+	"bytes"
 	"strconv"
 	"strings"
-	"io"
-	"log"
 	"net/http"
-	"os"
-	"time"
+	"encoding/json"
 
 	"github.com/joho/godotenv"
 	"github.com/golang-jwt/jwt/v5"
@@ -55,6 +56,7 @@ type GraphQLResponse struct {
 type Language struct {
 	Name  string
 	Color string
+	Size int
 }
 
 type ProcessedUser struct {
@@ -232,20 +234,27 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 	var repoStarCount2 string
 	var repoLanguagesNames2 []string
 	var repoLanguagesColors2 []string
+	var languages []Language
 	if len(user.Repositories.Nodes) > 0 {
 		repo1 := user.Repositories.Nodes[0]
 		repoName1 = repo1.Name
 		repoDesc1 = repo1.Description
 		repoURL1 = fmt.Sprintf("https://github.com/%s/%s", user.Login, repo1.Name)
 		repoStarCount1 = strconv.Itoa(repo1.StargazerCount)
-		for i, lang := range repo1.Languages.Edges {
+		for _, lang := range repo1.Languages.Edges {
+			if lang.Node.Name != "" && lang.Node.Color != "" {
+				languages = append(languages, Language{ Name: lang.Node.Name, Color: lang.Node.Color, Size: lang.Size })
+			}
+		}
+		sort.Slice(languages, func(i, j int) bool{
+			return languages[i].Size > languages[j].Size
+		})
+		for i, lang := range languages {
 			if i >= 4 {
         		break
-    		}
-			if lang.Node.Name != "" && lang.Node.Color != "" {
-				repoLanguagesNames1 = append(repoLanguagesNames1, lang.Node.Name)
-				repoLanguagesColors1 = append(repoLanguagesColors1, lang.Node.Color)
 			}
+			repoLanguagesNames1 = append(repoLanguagesNames1, lang.Name)
+			repoLanguagesColors1 = append(repoLanguagesColors1, lang.Color)
 		}
 	}
 	if len(user.Repositories.Nodes) > 1 {
@@ -254,14 +263,21 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 		repoDesc2 = repo2.Description
 		repoURL2 = fmt.Sprintf("https://github.com/%s/%s", user.Login, repo2.Name)
 		repoStarCount2 = strconv.Itoa(repo2.StargazerCount)
-		for i, lang := range repo2.Languages.Edges {
+		languages = languages[:0]
+		for _, lang := range repo2.Languages.Edges {
+			if lang.Node.Name != "" && lang.Node.Color != "" {
+				languages = append(languages, Language{ Name: lang.Node.Name, Color: lang.Node.Color, Size: lang.Size })
+			}
+		}
+		sort.Slice(languages, func(i, j int) bool{
+			return languages[i].Size > languages[j].Size
+		})
+		for i, lang := range languages {
 			if i >= 4 {
         		break
     		}
-			if lang.Node.Name != "" && lang.Node.Color != "" {
-				repoLanguagesNames2 = append(repoLanguagesNames2, lang.Node.Name)
-				repoLanguagesColors2 = append(repoLanguagesColors2, lang.Node.Color)
-			}
+			repoLanguagesNames2 = append(repoLanguagesNames2, lang.Name)
+			repoLanguagesColors2 = append(repoLanguagesColors2, lang.Color)
 		}
 	}
 	counts := make(map[Language]int)
