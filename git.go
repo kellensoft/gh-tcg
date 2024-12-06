@@ -39,6 +39,7 @@ type GraphQLResponse struct {
 					} `json:"primaryLanguage"`
 					Languages struct {
 						Edges []struct {
+							Size int `json:"size"`
 							Node struct {
 								Name  string `json:"name"`
 								Color string `json:"color"`
@@ -172,7 +173,7 @@ func fetchUserData(token, username string) (*GraphQLResponse, error) {
 				following {
 					totalCount
 				}
-				repositories(first: 20, orderBy: {field: STARGAZERS, direction: DESC}) {
+				repositories(first: 100, orderBy: {field: STARGAZERS, direction: DESC}) {
 					totalCount
 					nodes {
 						name
@@ -182,8 +183,9 @@ func fetchUserData(token, username string) (*GraphQLResponse, error) {
 							name
 							color
 						}
-						languages(first: 4) {
+						languages(first: 10) {
 							edges {
+								size
 								node {
 									name
 									color
@@ -236,7 +238,10 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 		repoDesc1 = repo1.Description
 		repoURL1 = fmt.Sprintf("https://github.com/%s/%s", user.Login, repo1.Name)
 		repoStarCount1 = strconv.Itoa(repo1.StargazerCount)
-		for _, lang := range repo1.Languages.Edges {
+		for i, lang := range repo1.Languages.Edges {
+			if i >= 4 {
+        		break
+    		}
 			if lang.Node.Name != "" && lang.Node.Color != "" {
 				repoLanguagesNames1 = append(repoLanguagesNames1, lang.Node.Name)
 				repoLanguagesColors1 = append(repoLanguagesColors1, lang.Node.Color)
@@ -249,7 +254,10 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 		repoDesc2 = repo2.Description
 		repoURL2 = fmt.Sprintf("https://github.com/%s/%s", user.Login, repo2.Name)
 		repoStarCount2 = strconv.Itoa(repo2.StargazerCount)
-		for _, lang := range repo2.Languages.Edges {
+		for i, lang := range repo2.Languages.Edges {
+			if i >= 4 {
+        		break
+    		}
 			if lang.Node.Name != "" && lang.Node.Color != "" {
 				repoLanguagesNames2 = append(repoLanguagesNames2, lang.Node.Name)
 				repoLanguagesColors2 = append(repoLanguagesColors2, lang.Node.Color)
@@ -265,7 +273,7 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 				Name:  edge.Node.Name,
 				Color: edge.Node.Color,
 			}
-			counts[currentLang]++
+			counts[currentLang] += edge.Size
 			if counts[currentLang] >= maxCount {
 				mostUsedLanguage = currentLang
 				maxCount = counts[currentLang]
