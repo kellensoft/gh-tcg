@@ -154,7 +154,7 @@ func main() {
 func generateJWT(alg string, issuer string, secret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.GetSigningMethod(alg), jwt.MapClaims{
 		"iss": issuer,
-		"exp": time.Now().Add(time.Hour).Unix(),
+		"exp": time.Now().Add(5 * time.Minute).Unix(),
 	})
 	return token.SignedString([]byte(secret))
 }
