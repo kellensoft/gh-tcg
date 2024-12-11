@@ -307,12 +307,13 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 		followers = []string{"followers", strconv.Itoa(user.Following.TotalCount)}
 		defaultBio = "We don't know much about "+defaultIfEmpty(user.Name, user.Login)+", but we heard they are pretty cool."
 	}
+	var defaultURL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='white' /%3E%3C/svg%3E"
 	return ProcessedUser{
 		Title:                defaultIfEmpty(user.Name, user.Login),
 		Subtitle:             fmt.Sprintf("https://github.com/%s", user.Login),
 		Bg:                   mostUsedLanguage.Color,
 		Type:                 []string{mostUsedLanguage.Name, mostUsedLanguage.Color},
-		Photo:                defaultIfEmpty(user.AvatarURL, "https://imgur.com/a/gc9tHBw"),
+		Photo:                defaultIfEmpty(user.AvatarURL, defaultURL),
 		Details:              []string{"GitHub User.", defaultIfEmpty(user.Location, "Unknown Location")+".", defaultIfEmpty(user.Company, "Unknown Company")+"."},
 		Moves:                [][]interface{}{
 			{
