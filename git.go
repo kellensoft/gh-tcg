@@ -312,7 +312,7 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 		Subtitle:             fmt.Sprintf("https://github.com/%s", user.Login),
 		Bg:                   mostUsedLanguage.Color,
 		Type:                 []string{mostUsedLanguage.Name, mostUsedLanguage.Color},
-		Photo:                user.AvatarURL,
+		Photo:                defaultIfEmpty(user.AvatarURL, "https://imgur.com/a/gc9tHBw"),
 		Details:              []string{"GitHub User.", defaultIfEmpty(user.Location, "Unknown Location")+".", defaultIfEmpty(user.Company, "Unknown Company")+"."},
 		Moves:                [][]interface{}{
 			{
