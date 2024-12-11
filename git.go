@@ -299,6 +299,10 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 	var repoCount = strconv.Itoa(user.Repositories.TotalCount)
 	var followingCount = strconv.Itoa(user.Following.TotalCount)
 	var followersCount = strconv.Itoa(user.Following.TotalCount)
+	var defaultBio = ""
+	if user.Name != "" or user.Login != "" {
+		defaultBio = "We don't know much about "+defaultIfEmpty(user.Name, user.Login)+", but we heard they are pretty cool."
+	}
 	return ProcessedUser{
 		Title:                defaultIfEmpty(user.Name, user.Login),
 		Subtitle:             fmt.Sprintf("https://github.com/%s", user.Login),
@@ -321,7 +325,7 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 			},
 		},
 		Stats:                [][]string{{"repos", repoCount},{"following",followingCount},{"followers",followersCount}},
-		Biography:            defaultIfEmpty(user.Bio, "We don't know much about "+defaultIfEmpty(user.Name, user.Login)+", but we heard they are pretty cool."),
+		Biography:            defaultIfEmpty(user.Bio, defaultBio),
 		Attribution:          "Generated using public data sourced from GitHub",
 		Logo:                 []string{"https://i.imgur.com/vdXGhxq.png", "GH"},
 		Count:                number,
