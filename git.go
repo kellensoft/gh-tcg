@@ -300,7 +300,7 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 	var followingCount = strconv.Itoa(user.Following.TotalCount)
 	var followersCount = strconv.Itoa(user.Following.TotalCount)
 	var defaultBio = ""
-	if user.Name != "" or user.Login != "" {
+	if (user.Name != "" || user.Login != "") {
 		defaultBio = "We don't know much about "+defaultIfEmpty(user.Name, user.Login)+", but we heard they are pretty cool."
 	}
 	return ProcessedUser{
