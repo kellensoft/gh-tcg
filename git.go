@@ -296,11 +296,15 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 			}
 		}
 	}
-	var repoCount = strconv.Itoa(user.Repositories.TotalCount)
-	var followingCount = strconv.Itoa(user.Following.TotalCount)
-	var followersCount = strconv.Itoa(user.Following.TotalCount)
+	
+	var repos = []string{"", ""}
+	var following = []string{"", ""}
+	var followers = []string{"", ""}
 	var defaultBio = ""
-	if (user.Name != "" || user.Login != "") {
+	if (user.Name != "" || user.Login != "") {	
+		repos = []string{"repos", strconv.Itoa(user.Repositories.TotalCount)}
+		following = []string{"following", strconv.Itoa(user.Following.TotalCount)}
+		followers = []string{"followers", strconv.Itoa(user.Following.TotalCount)}
 		defaultBio = "We don't know much about "+defaultIfEmpty(user.Name, user.Login)+", but we heard they are pretty cool."
 	}
 	return ProcessedUser{
@@ -324,7 +328,7 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 				repoStarCount2,
 			},
 		},
-		Stats:                [][]string{{"repos", repoCount},{"following",followingCount},{"followers",followersCount}},
+		Stats:                [][]string{repos, following, followers},
 		Biography:            defaultIfEmpty(user.Bio, defaultBio),
 		Attribution:          "Generated using public data sourced from GitHub",
 		Logo:                 []string{"https://i.imgur.com/vdXGhxq.png", "GH"},
