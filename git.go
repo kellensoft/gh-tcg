@@ -304,7 +304,7 @@ func processUser(data *GraphQLResponse, number string) ProcessedUser {
 	if (user.Name != "" || user.Login != "") {	
 		repos = []string{"repos", strconv.Itoa(user.Repositories.TotalCount)}
 		following = []string{"following", strconv.Itoa(user.Following.TotalCount)}
-		followers = []string{"followers", strconv.Itoa(user.Following.TotalCount)}
+		followers = []string{"followers", strconv.Itoa(user.Followers.TotalCount)}
 		defaultBio = "We don't know much about "+defaultIfEmpty(user.Name, user.Login)+", but we heard they are pretty cool."
 	}
 	var defaultURL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='1'%3E%3Crect width='1' height='1' fill='white' /%3E%3C/svg%3E"
